@@ -1,0 +1,36 @@
+# Environment variables
+.env
+
+# Virtual environment
+.venv/
+venv/
+env/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Cloned websites (all cloned_* directories)
+cloned_*/
+
+# Screenshots and generated files
+screenshots/
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.svg
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db

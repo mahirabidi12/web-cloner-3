@@ -232,6 +232,68 @@ class WebCloner:
         await asyncio.sleep(2)
         print("✅ All images and fonts loaded")
 
+    async def take_segmented_screenshots(self, page):
+        """Take multiple viewport-sized screenshots by scrolling through the page"""
+        print("📸 Taking segmented viewport screenshots...")
+
+        # Get page and viewport dimensions
+        total_height = await page.evaluate("document.body.scrollHeight")
+        viewport_height = await page.evaluate("window.innerHeight")
+
+        print(f"   Page height: {total_height}px, Viewport: {viewport_height}px")
+
+        # Start from the top
+        current_scroll = 0
+        segment_num = 1
+
+        # Scroll to top first
+        await page.evaluate("window.scrollTo(0, 0)")
+        await asyncio.sleep(0.3)
+
+        while current_scroll < total_height:
+            # Take screenshot at current position
+            await page.screenshot(
+                path=f"{self.output_dir}/screenshots/segment_{segment_num}.png"
+            )
+            print(f"   ✅ Saved segment {segment_num} (scroll position: {current_scroll}px)")
+
+            # Get current scroll position (might have changed due to lazy loading)
+            actual_scroll = await page.evaluate("window.pageYOffset")
+
+            # Calculate next scroll position (scroll by viewport height)
+            next_scroll = actual_scroll + viewport_height
+
+            # If we've captured everything, break
+            if next_scroll >= total_height:
+                # Check if there's remaining content to capture
+                remaining_height = total_height - actual_scroll
+                if remaining_height > viewport_height * 0.1:  # If more than 10% viewport remains
+                    # Take one more screenshot at the bottom
+                    await page.evaluate(f"window.scrollTo(0, {total_height - viewport_height})")
+                    await asyncio.sleep(0.3)
+                    segment_num += 1
+                    await page.screenshot(
+                        path=f"{self.output_dir}/screenshots/segment_{segment_num}.png"
+                    )
+                    print(f"   ✅ Saved segment {segment_num} (final segment)")
+                break
+
+            # Scroll to next position
+            await page.evaluate(f"window.scrollTo(0, {next_scroll})")
+            await asyncio.sleep(0.3)
+
+            current_scroll = next_scroll
+            segment_num += 1
+
+            # Update total height in case content loaded
+            total_height = await page.evaluate("document.body.scrollHeight")
+
+        # Scroll back to top
+        await page.evaluate("window.scrollTo(0, 0)")
+        await asyncio.sleep(0.5)
+
+        print(f"✅ Saved {segment_num} segmented screenshots")
+
     async def take_screenshots(self, page):
         """Take screenshots of the page"""
         print("\n📸 Taking screenshots...")
@@ -249,11 +311,9 @@ class WebCloner:
         )
         print(f"✅ Saved full page screenshot")
 
-        # Viewport screenshot
-        await page.screenshot(
-            path=f"{self.output_dir}/screenshots/viewport.png"
-        )
-        print(f"✅ Saved viewport screenshot")
+        # Segmented screenshots (viewport-sized sections, no overlap)
+        # Note: segment_1.png will be the viewport screenshot
+        await self.take_segmented_screenshots(page)
 
     async def save_metadata(self):
         """Save metadata about the cloned site"""

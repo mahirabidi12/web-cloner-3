@@ -8,7 +8,7 @@ import aiohttp
 import json
 from playwright.async_api import async_playwright
 
-load_dotenv()
+load_dotenv() 
 
 class WebCloner:
     def __init__(self, url, output_dir="cloned_site"):

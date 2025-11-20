@@ -5,7 +5,7 @@ import asyncio
 load_dotenv()
 
 async def main():
-    llm = ChatGoogle(model="gemini-flash-latest")
+    llm = ChatGoogle(model="gemini-flash-latest") 
     task = "go to https://www.psyplex.site/ and save a screenshot to screenshot.png"
     agent = Agent(task=task, llm=llm)
     result = await agent.run()
